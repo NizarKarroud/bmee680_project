@@ -1,0 +1,4 @@
+#Sun May 10 22:02:45 CEST 2026
+__DEFAULT__=false
+expression=I2C_HandleTypeDef 
+org.eclipse.help.ui.localSearch.master=true

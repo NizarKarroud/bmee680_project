@@ -1,0 +1,60 @@
+17:51:43 **** Incremental Build of configuration Debug for project nucleoF411_base ****
+make -j12 all 
+arm-none-eabi-gcc -std=c99 -ISTM32F4xx_HAL_Driver/inc/ -Iinclude/ -Imbed_shield/inc/ -I. -g -D__DEBUG__ -O0 -Wall -march=armv7e-m -mfloat-abi=hard -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mthumb -DSTM32F411xE -Wextra -Warray-bounds -Wno-unused-parameter -fomit-frame-pointer -MD -MP -MF .dep/main.o.d   -c -o src/main.o src/main.c
+src/main.c: In function 'main':
+src/main.c:75:28: warning: variable 'data' set but not used [-Wunused-but-set-variable]
+   75 |         struct bme68x_data data;
+      |                            ^~~~
+src/main.c:59:16: warning: unused variable 'rslt' [-Wunused-variable]
+   59 |         int8_t rslt = bme68x_init(&bme);
+      |                ^~~~
+arm-none-eabi-gcc -o main.elf startup/stm32f411_periph.o startup/sys_handlers.o startup/system_stm32f4xx.o STM32F4xx_HAL_Driver/src/stm32f4xx_ll_rcc.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_i2c.o STM32F4xx_HAL_Driver/src/util.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_cortex.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_uart.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_gpio.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_tim.o STM32F4xx_HAL_Driver/src/stm32f4xx_hal_spi.o mbed_shield/src/leds.o mbed_shield/src/sw.o mbed_shield/src/lm75.o mbed_shield/src/lcd_128x32.o src/stm32f4xx_hal_msp.o src/stm32f4xx_it.o src/bme68x.o src/bme680_port.o src/main.o startup/startup_stm32f411xe.o -march=armv7e-m -mfloat-abi=hard -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mthumb -DSTM32F411xE -Tconfig/STM32F411RE_FLASH.lds -lc -lgcc -lgcov -lm -Wl,-Map=main.elf.map,--gc-sections  -specs=nano.specs   
+C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.100.202509120712/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: warning: main.elf has a LOAD segment with RWX permissions
+arm-none-eabi-objdump -h main.elf
+
+main.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .isr_vector   00000198  08000000  08000000  00001000  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  1 .text         00005a28  08000198  08000198  00001198  2**3
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .rodata       00000920  08005bc0  08005bc0  00006bc0  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  3 .init_array   00000004  080064e0  080064e0  000074e0  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  4 .fini_array   00000004  080064e4  080064e4  000074e4  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  5 .data         000000c8  20000000  080064e8  00008000  2**2
+                  CONTENTS, ALLOC, LOAD, DATA
+  6 .bss          000003a0  200000c8  080065b0  000080c8  2**2
+                  ALLOC
+  7 ._user_heap_stack 00000600  20000468  080065b0  00008468  2**0
+                  ALLOC
+  8 .ARM.attributes 00000030  00000000  00000000  000080c8  2**0
+                  CONTENTS, READONLY
+  9 .debug_info   0000a96a  00000000  00000000  000080f8  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 10 .debug_abbrev 00002026  00000000  00000000  00012a62  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 11 .debug_aranges 00000260  00000000  00000000  00014a88  2**3
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 12 .debug_line   00005d2e  00000000  00000000  00014ce8  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 13 .debug_str    00002c55  00000000  00000000  0001aa16  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 14 .comment      00000043  00000000  00000000  0001d66b  2**0
+                  CONTENTS, READONLY
+ 15 .debug_frame  000015e8  00000000  00000000  0001d6b0  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 16 .debug_ranges 00000020  00000000  00000000  0001ec98  2**3
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+arm-none-eabi-size main.elf
+   text	   data	    bss	    dec	    hex	filename
+  25824	    208	   2464	  28496	   6f50	main.elf
+arm-none-eabi-objcopy -O ihex main.elf main.hex
+arm-none-eabi-objcopy -O binary main.elf main.bin
+
+17:51:43 Build Finished. 0 errors, 3 warnings. (took 511ms)
+
