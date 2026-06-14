@@ -77,7 +77,16 @@ void  HAL_TIM5_MspInit(void)
 //===========================================================
 void HAL_UART2_MspInit(void)
 {
-	// A COMPLETER
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __USART2_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_2 | GPIO_PIN_3; // TX=PA2, RX=PA3
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 //===========================================================
 

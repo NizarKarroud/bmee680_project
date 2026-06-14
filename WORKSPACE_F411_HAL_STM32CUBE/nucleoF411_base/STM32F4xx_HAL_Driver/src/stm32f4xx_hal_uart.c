@@ -66,8 +66,15 @@ int HAL_UART_Init(UART_HandleTypeDef *huart)
 //=======================================================================================
 int HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
 {
-	// A COMPLETER
-	return 0;
+    USART_TypeDef *uart = huart->Instance;
+
+    for (uint16_t i = 0; i < Size; i++)
+    {
+        while (!(uart->SR & (1 << 7)));  // wait TXE
+        uart->DR = pData[i];
+    }
+    while (!(uart->SR & (1 << 6)));     // wait TC
+    return 0;
 }
 //=======================================================================================
 int HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
@@ -94,12 +101,14 @@ int HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size
 //=======================================================================================
 void uart_putc(UART_HandleTypeDef *huart, uint8_t c)
 {
-	// A COMPLETER
+    while (!(huart->Instance->SR & (1 << 7)));  // wait TXE
+    huart->Instance->DR = c;
 }
-//=====================================================================================
+
 void uart_puts(UART_HandleTypeDef *huart, uint8_t *s)
 {
-	// A COMPLETER
+    while (*s)
+        uart_putc(huart, *s++);
 }
 //=====================================================================================
 void uart_printf(UART_HandleTypeDef *huart, const uint8_t* fmt, ...)
