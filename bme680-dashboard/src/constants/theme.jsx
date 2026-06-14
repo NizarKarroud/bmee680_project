@@ -20,7 +20,7 @@ export const FONTS = {
 };
 
 export const MAX_HISTORY = 40;
-export const POLL_INTERVAL_MS = 5000;
+export const POLL_INTERVAL_MS = 2000;
 
 export const METRICS = [
   { key: "temperature",    label: "Temperature",    unit: "°C",  color: C.temp, icon: "🌡" },

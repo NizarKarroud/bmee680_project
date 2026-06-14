@@ -41,7 +41,7 @@ function ActionButton({ label, icon, onClick, variant = "default", loading }) {
 }
 
 export default function ControlPanel({ loading, actions }) {
-  const { handleGetReading, handleReset, handleClearDB, handleExport } = actions;
+  const { handleExport } = actions;
 
   return (
     <div style={{
@@ -57,22 +57,11 @@ export default function ControlPanel({ loading, actions }) {
         Controls
       </div>
 
-      <ActionButton
-        label="Get Reading" icon="📡" variant="primary"
-        onClick={handleGetReading} loading={loading.read}
-      />
-      <ActionButton
-        label="Reset Sensor" icon="🔄" variant="success"
-        onClick={handleReset} loading={loading.reset}
-      />
-      <ActionButton
-        label="Clear Database" icon="🗑" variant="danger"
-        onClick={handleClearDB} loading={loading.clear}
-      />
-      <ActionButton
-        label="Export CSV" icon="⬇" variant="default"
-        onClick={handleExport}
-      />
+
+    <ActionButton
+      label="Export CSV" icon="⬇" variant="success"
+      onClick={handleExport}
+    />
     </div>
   );
 }

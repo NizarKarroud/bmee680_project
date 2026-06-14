@@ -7,7 +7,6 @@ import ChartPanel   from "./components/ChartPanel";
 import ControlPanel from "./components/ControlPanel";
 import ActivityLog  from "./components/ActivityLog";
 
-// ── Inject Google Fonts once ─────────────────────────────────────────────────
 const injectFonts = () => {
   if (document.getElementById("bme-fonts")) return;
   const link = document.createElement("link");
@@ -17,27 +16,14 @@ const injectFonts = () => {
   document.head.appendChild(link);
 };
 
-// ── Derived sublabel per metric ──────────────────────────────────────────────
 const getSublabel = (key, latest) => {
   if (!latest) return null;
-  switch (key) {
-    case "temperature":
-      return `Feels like ${(latest.temperature + 1.2).toFixed(1)}°C`;
-    case "humidity":
-      return latest.humidity > 60 ? "High — consider ventilation" : "Comfortable range";
-    case "pressure":
-      return latest.pressure > 1013 ? "High pressure system" : "Low pressure system";
-    case "gas_resistance": {
-      const g = latest.gas_resistance;
-      const label = g > 50000 ? "GOOD" : g > 25000 ? "MODERATE" : "POOR";
-      return `Air Quality: ${label} · ${(g / 1000).toFixed(1)} kΩ`;
-    }
-    default:
-      return null;
+  if (key === "gas_resistance") {
+    return `${(latest.gas_resistance / 1000).toFixed(1)} kΩ · ${latest.air_quality ?? "—"}`;
   }
+  return null;
 };
 
-// ── Y-axis domains per metric ────────────────────────────────────────────────
 const Y_DOMAINS = {
   temperature:    ["auto", "auto"],
   humidity:       [0, 100],
@@ -45,11 +31,10 @@ const Y_DOMAINS = {
   gas_resistance: ["auto", "auto"],
 };
 
-// ════════════════════════════════════════════════════════════════════════════
 export default function App() {
   useEffect(() => { injectFonts(); }, []);
 
-  const { latest, history, connected, loading, log, actions } = useSensorData();
+  const { latest, history, total, connected, loading, log, actions } = useSensorData();
 
   return (
     <div style={{
@@ -59,7 +44,6 @@ export default function App() {
       boxSizing: "border-box",
       fontFamily: FONTS.sans,
     }}>
-      {/* Noise texture overlay */}
       <div style={{
         position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
@@ -67,14 +51,12 @@ export default function App() {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 1200, margin: "0 auto" }}>
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
         <Header
           connected={connected}
           lastTimestamp={latest?.timestamp}
-          sampleCount={history.length}
+          sampleCount={total}
         />
 
-        {/* ── Metric cards ────────────────────────────────────────────────── */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -93,7 +75,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* ── Charts ──────────────────────────────────────────────────────── */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -112,7 +93,6 @@ export default function App() {
           ))}
         </div>
 
-        {/* ── Controls + Log ──────────────────────────────────────────────── */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "200px 1fr",
@@ -122,7 +102,6 @@ export default function App() {
           <ActivityLog log={log} />
         </div>
 
-        {/* ── Footer ──────────────────────────────────────────────────────── */}
         <div style={{
           marginTop: 28, paddingTop: 20,
           borderTop: `1px solid ${C.border}`,
@@ -130,8 +109,8 @@ export default function App() {
           fontFamily: FONTS.mono, fontSize: 10,
           color: C.muted, flexWrap: "wrap", gap: 8,
         }}>
-          <span>BME680 DASHBOARD · POLLING 5s · HISTORY {MAX_HISTORY} pts</span>
-          <span>STM32F411 → ESP8266 → FASTAPI → REACT</span>
+          <span>BME680 DASHBOARD · POLLING 2s · HISTORY {MAX_HISTORY} pts</span>
+          <span>STM32F411 → UART → FASTAPI → REACT</span>
         </div>
 
       </div>

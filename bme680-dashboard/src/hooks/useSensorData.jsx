@@ -1,48 +1,36 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MAX_HISTORY, POLL_INTERVAL_MS } from "../constants/theme";
 
-// ─── Mock generator (remove once FastAPI is live) ───────────────────────────
-const generateMock = (prev) => ({
-  timestamp:      new Date().toISOString(),
-  temperature:    +(( prev?.temperature    ?? 24)    + (Math.random() - 0.5) * 0.4).toFixed(2),
-  humidity:       +(( prev?.humidity       ?? 58)    + (Math.random() - 0.5) * 1.2).toFixed(2),
-  pressure:       +(( prev?.pressure       ?? 1013)  + (Math.random() - 0.5) * 0.3).toFixed(2),
-  gas_resistance: +(( prev?.gas_resistance ?? 42000) + (Math.random() - 0.5) * 800).toFixed(0),
-});
+const BASE_URL = "http://localhost:8000/sensor";
 
 const fmtTime = (iso) => {
   if (!iso) return "--:--:--";
   return new Date(iso).toLocaleTimeString("en-GB", { hour12: false });
 };
 
-// ─── API calls — swap URLs to your FastAPI host ──────────────────────────────
 const API = {
-  async getLatest(prev) {
-    // const res = await fetch("http://YOUR_HOST:8000/sensor-data");
-    // return res.json();
-    return generateMock(prev);
+  async fetch(limit = MAX_HISTORY) {
+    const res = await fetch(`${BASE_URL}/data/fetch?limit=${limit}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
   },
-  async reset() {
-    // await fetch("http://YOUR_HOST:8000/sensor/reset", { method: "POST" });
-    await new Promise(r => setTimeout(r, 1000));
-  },
-  async clearDB() {
-    // await fetch("http://YOUR_HOST:8000/sensor-data/clear", { method: "DELETE" });
-    await new Promise(r => setTimeout(r, 800));
+
+  async export(format = "csv") {
+    const res = await fetch(`${BASE_URL}/data/export?format=${format}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.blob();
   },
 };
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
 export function useSensorData() {
   const [latest,    setLatest]    = useState(null);
   const [history,   setHistory]   = useState([]);
+  const [total,     setTotal]     = useState(0);
   const [connected, setConnected] = useState(true);
   const [loading,   setLoading]   = useState({});
   const [log,       setLog]       = useState([]);
 
-  const latestRef   = useRef(latest);
   const intervalRef = useRef(null);
-  latestRef.current = latest;
 
   const addLog = useCallback((msg, type = "info") => {
     setLog(prev => [
@@ -56,74 +44,48 @@ export function useSensorData() {
 
   const fetchReading = useCallback(async () => {
     try {
-      const data = await API.getLatest(latestRef.current);
-      setLatest(data);
-      setHistory(prev => {
-        const next = [...prev, { ...data, time: fmtTime(data.timestamp) }];
-        return next.slice(-MAX_HISTORY);
-      });
+      const data = await API.fetch(MAX_HISTORY);
+      setLatest(data.latest);
+      setTotal(data.total);
+      const ordered = [...data.history].reverse().map(r => ({
+        ...r,
+        time: fmtTime(r.timestamp),
+      }));
+      setHistory(ordered);
       setConnected(true);
-    } catch {
+    } catch (err) {
       setConnected(false);
-      addLog("Sensor endpoint unreachable", "error");
+      addLog(`Fetch failed: ${err.message}`, "error");
     }
   }, [addLog]);
 
-  // auto-poll
   useEffect(() => {
     fetchReading();
     intervalRef.current = setInterval(fetchReading, POLL_INTERVAL_MS);
     return () => clearInterval(intervalRef.current);
   }, [fetchReading]);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
-  const handleGetReading = async () => {
-    setLoadingKey("read", true);
-    addLog("Requesting fresh reading…");
-    await fetchReading();
-    addLog("Reading acquired ✓", "success");
-    setLoadingKey("read", false);
-  };
-
-  const handleReset = async () => {
-    setLoadingKey("reset", true);
-    addLog("Sending reset to STM32…", "warn");
-    await API.reset();
-    setLatest(null);
-    setHistory([]);
-    addLog("Sensor reset complete ✓", "success");
-    setLoadingKey("reset", false);
-  };
-
-  const handleClearDB = async () => {
-    setLoadingKey("clear", true);
-    addLog("Clearing database…", "warn");
-    await API.clearDB();
-    setHistory([]);
-    addLog("Database cleared ✓", "success");
-    setLoadingKey("clear", false);
-  };
-
-  const handleExport = () => {
-    const csv = [
-      "timestamp,temperature,humidity,pressure,gas_resistance",
-      ...history.map(r =>
-        `${r.timestamp},${r.temperature},${r.humidity},${r.pressure},${r.gas_resistance}`
-      ),
-    ].join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = `bme680_${Date.now()}.csv`;
-    a.click();
-    addLog("CSV exported ✓", "success");
+  const handleExport = async () => {
+    addLog("Exporting CSV…");
+    try {
+      const blob = await API.export("csv");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `bme680_${Date.now()}.csv`;
+      a.click();
+      addLog("CSV exported ✓", "success");
+    } catch (err) {
+      addLog(`Export failed: ${err.message}`, "error");
+    }
   };
 
   return {
     latest,
     history,
+    total,
     connected,
     loading,
     log,
-    actions: { handleGetReading, handleReset, handleClearDB, handleExport },
+    actions: { handleExport },
   };
 }
