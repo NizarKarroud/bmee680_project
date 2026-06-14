@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;nucleoF411_base/include/bme68x&apos;" deleteContents="false" description="Delete resource &apos;nucleoF411_base/include/bme68x&apos;" element1="/nucleoF411_base/include/bme68x" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1778444758900"/>
-</session>
